@@ -58,7 +58,7 @@ Oscillator.prototype.compute = function(bodyId){
         u = this.u_list[i]; v = this.v_list[i]; t = this.t_list[i];
 
         k1_v = this.f_v(t, u, v);
-        k1_u = this.f_u(t, u, k1_v);
+        k1_u = this.f_u(t, u, v);
         k2_u = this.f_u( t + 0.5*h, u + 0.5*h*k1_u, v + 0.5*h*k1_v );
         k2_v = this.f_v( t + 0.5*h, u + 0.5*h*k1_u, v + 0.5*h*k1_v );
         k3_u = this.f_u( t + 0.5*h, u + 0.5*h*k2_u, v + 0.5*h*k2_v );
