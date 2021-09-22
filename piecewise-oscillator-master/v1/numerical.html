@@ -1,0 +1,458 @@
+<html lang="en" xmlns="http://www.w3.org/1999/html" xmlns="http://www.w3.org/1999/html">
+<head>
+  <title>Oscillations</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,user-scalable=no,initial-scale=1.0,maximum-scale=1.0"/>
+  <style type="text/css">
+    table{
+    border-collapse: collapse;
+    border-style: hidden;
+    text-align:center;}
+table td {
+text-align:center;
+  border: 1px solid  #3d3d32;
+}
+<!--.card-header {-->
+<!--    color: white !important;-->
+<!--    background-color: #5bc0de  !important;-->
+<!--}-->
+<!--.card-group {-->
+<!--    color: white !important;-->
+<!--    background-color: #5bc0de  !important;}-->
+<!--.card-body {-->
+<!--    color: white !important;-->
+<!--    background-color: #3d3d32 !important;-->
+<!--}-->
+  </style>
+
+</head>
+
+<script src="https://d3js.org/d3.v4.min.js"></script>
+<script src="https://d3js.org/d3-selection-multi.v1.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.2.1.min.js" integrity="sha256-hwg4gsxgFZhOsEEamdOYGBf13FyQuiTwlAQgxVSNgt4=" crossorigin="anonymous"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjs/3.16.3/math.min.js"></script>
+<script type="text/javascript" src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<script type="text/x-mathjax-config"> MathJax.Hub.Config({ extensions: ["tex2jax.js"], jax: ["input/TeX","output/HTML-CSS"], tex2jax: { inlineMath: [["\\(","\\)"]] } }); </script>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.2/MathJax.js?config=TeX-MML-AM_CHTML"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/js/bootstrap.min.js" integrity="sha384-h0AbiXch4ZDo7tp9hKZ4TsHbi047NrKGLO3SEJAg45jXxnGIfYzk4Si90RDIqNm1" crossorigin="anonymous"></script>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta/css/bootstrap.min.css" integrity="sha384-/Y6pD6FV/Vv2HJnA6t+vslU6fwYXjCFtcEpHbNJ0lyAFsXTsjBbfaDjzALeQsN6M" crossorigin="anonymous">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<link rel="stylesheet" href="stylesheet.css">
+
+<body id="numerical">
+<!------------------------------------------------------------------------------------------------------->
+<!-- Navigation Bar -->
+
+  <!-- Central Heading -->
+<span class="pos-f-t">
+      <!-- Controls -->
+<div class="collapse" id="controls">
+<div class="card-group">
+          <!-- System Parameters -->
+            <div class="card text-center col-md-2">
+              <div class="card-header">System parameters</div>
+              <div class="card-body">
+                <div class='mt-1'> <input type="range" id="mass_slider" style="width: 40%; vertical-align: middle;"></input> m = <input id="mass_input" type="number" style="width: 25%;"> </div>
+                <div class='mt-1'> <input type="range" id="springConstant_slider" style="width: 40%; vertical-align: middle;"></input> k = <input id="springConstant_input" type="number" style="width: 25%;"> </div>
+                <div class='mt-1'> <input type="range" id="dampingConstant_slider" style="width: 40%; vertical-align: middle;"></input> c = <input id="dampingConstant_input" type="number" style="width: 25%;"> </div>
+              </div>
+            </div>
+          <!-- System Parameters -->
+
+          <!-- Applied Force -->
+            <div class="card text-center col-md-2">
+              <div class="card-header">Applied Force</div>
+              <div class="card-body">
+                <div class='mt-1'> <input type="range" id="excitingMagnitude_slider" style="width: 40%; vertical-align: middle;"></input> F<sub>0</sub> = <input id="excitingMagnitude_input" type="number" style="width: 25%;"> </div>
+                <div class='mt-1'> <input type="range" id="excitingFrequency_slider" style="width: 40%; vertical-align: middle;"></input> ω = <input id="excitingFrequency_input" type="number" style="width: 25%;"> </div>
+              </div>
+            </div>
+          <!-- Applied Force -->
+          <!-- Graph Controls -->
+            <div class="card text-center col-md-4">
+              <div class="card-header">Graph Controls</div>
+              <div class="card-body">
+
+                <!-- yAxis Options -->
+                <div class='dropdown d-inline mr-4' id="y_axis">
+                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> y-axis </button>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <div id='yaxis_dropdown_disp' class='yaxis_dropdown dropdown-item active' onclick="change_yAxis('disp', 'Displacement')">Displacement</div>
+                    <div id='yaxis_dropdown_vel' class='yaxis_dropdown dropdown-item' onclick="change_yAxis('vel', 'Velocity')">Velocity</div>
+                    <div id='yaxis_dropdown_acc' class='yaxis_dropdown dropdown-item' onclick="change_yAxis('acc', 'Acceleration')">Acceleration</div>
+                    <div class="dropdown-divider"></div>
+                    <div id='yaxis_dropdown_kineticEnergy' class='yaxis_dropdown dropdown-item' onclick="change_yAxis('kineticEnergy', 'Kinetic Energy')">Kinetic Energy</div>
+                    <div id='yaxis_dropdown_potentialEnergy' class='yaxis_dropdown dropdown-item' onclick="change_yAxis('potentialEnergy', 'Potential Energy')">Potential Energy</div>
+                    <div id='yaxis_dropdown_totalEnergy' class='yaxis_dropdown dropdown-item' onclick="change_yAxis('totalEnergy', 'Total Energy')">Total Energy</div>
+                  </div>
+                </div>
+                <!-- yAxis Options -->
+
+                <!-- xAxis Options -->
+                <div class='dropdown d-inline mr-4' id="x_axis">
+                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> x-axis </button>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <div id='xaxis_dropdown_time' class='xaxis_dropdown dropdown-item active' onclick="change_xAxis('time', 'Time')">Time</div>
+                    <div class="dropdown-divider"></div>
+                    <div id='xaxis_dropdown_disp' class='xaxis_dropdown dropdown-item' onclick="change_xAxis('disp', 'Displacement')">Displacement</div>
+                    <div id='xaxis_dropdown_vel' class='xaxis_dropdown dropdown-item' onclick="change_xAxis('vel', 'Velocity')">Velocity</div>
+                    <div id='xaxis_dropdown_acc' class='xaxis_dropdown dropdown-item' onclick="change_xAxis('acc', 'Acceleration')">Acceleration</div>
+                  </div>
+                </div>
+                <!-- xAxis Options -->
+
+                <!-- Time Span -->
+                <div class='dropdown d-inline' id="timespan_dropdown">
+                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> time span </button>
+                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                    <div id='time_dropdown_10' class='time_dropdown dropdown-item active' onclick="change_timeSpan(10)">10 seconds</div>
+                    <div id='time_dropdown_20' class='time_dropdown dropdown-item' onclick="change_timeSpan(20)">20 seconds</div>
+                    <div id='time_dropdown_50' class='time_dropdown dropdown-item' onclick="change_timeSpan(50)">50 seconds</div>
+                    <div id='time_dropdown_100' class='time_dropdown dropdown-item' onclick="change_timeSpan(100)">100 seconds</div>
+                    <div id='time_dropdown_200' class='time_dropdown dropdown-item' onclick="change_timeSpan(200)">200 seconds</div>
+                    <div id='time_dropdown_500' class='time_dropdown dropdown-item' onclick="change_timeSpan(500)">500 seconds</div>
+                  </div>
+                </div>
+                <!-- Time Span -->
+
+                <div class='mt-1'> <input type="range" id="timestep_slider" style="width: 40%; vertical-align: middle;"></input> h = <input id="timestep_input" type="number" style="width: 13%;"> </div>
+
+              </div>
+            </div>
+          <!-- Graph Controls -->
+
+          <!-- Initial Conditions -->
+            <div class="card text-center col-md-2">
+              <div class="card-header">Initial Conditions</div>
+              <div class="card-body">
+                <div class='mt-1'> <input type="range" id="initialPosition_slider" style="width: 40%; vertical-align: middle;"></input> x<sub>0</sub> = <input id="initialPosition_input" type="number" style="width: 25%;"> </div>
+                <div class='mt-1'> <input type="range" id="initialVelocity_slider" style="width: 40%; vertical-align: middle;"></input> v<sub>0</sub> = <input id="initialVelocity_input" type="number" style="width: 25%;"> </div>
+              </div>
+            </div>
+          <!-- Initial Conditions -->
+          <!-- Auxilary Spring -->
+            <div class="card text-center col-md-2">
+              <div class="card-header">Auxilary Spring</div>
+              <div class="card-body">
+                <div class='mt-1'> <input type="range" id="auxSpringConstant_slider" style="width: 40%; vertical-align: middle;"></input> k' = <input id="auxSpringConstant_input" type="number" style="width: 30%;"> </div>
+              </div>
+            </div>
+          <!-- Auxilary Spring -->
+      </div>
+      </div>
+<!--////////////////////////////////////////////////////////////////////////////////////////////////////// -->
+      <!-- Controls -->
+<!-- <div id="controls">-->
+<nav class="navbar-dark bg-dark">
+    <button title="Change parameters" class="navbar-toggler" type="button" data-toggle="collapse" data-target="#controls" aria-controls="navbarToggleExternalContent" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+    <a type="button" class="btn btn-primary navbar-brand" href="index.html">Oscillation</a>
+    <a type="button" class="btn btn-secondary navbar-brand" href="#">Numerical</a>
+  </nav>
+</div>
+<!---------------->
+
+<!------------------------------------------------------------------------------------------------------->
+<!-- Main Body -->
+<div class="container-fluid">
+
+  <div class="row" style="height: 90%;">
+
+    <!--------------------------------------------->
+    <!-- Left Pane -->
+    <div class="col-md-5">
+      <!-- Schematic -->
+      <div style="width: 100%; height: 20%;"> <svg width='100%' height='100%' id="schematic"></svg> </div>
+      <!-- Schematic -->
+
+      <!-- Chart -->
+      <div style="width: 100%; height: 80%;"> <svg width='100%' height='100%' id="graph"></svg> </div>
+      <!-- Chart -->
+
+    </div>
+    <!--------------------------------------------->
+    <!-- Right Pane -->
+    <div class="col-md-7" style="background-color:#3d3d32;">
+<!--     <div class="row">-->
+<!--      <div class="col-md-12">-->
+<!--          <table>-->
+<!--              <tr>-->
+<!--&lt;!&ndash;   Nav Bar           &ndash;&gt;-->
+<!--              <ul class="nav nav-tabs"  id="myTab" role="tablist">-->
+<!--                  <li class="nav-item">-->
+<!--                      <a class="nav-link active" id="graphCon-tab" data-toggle="tab" href="#graphCon" role="tab" aria-controls="graphCon" aria-selected="true">Graph con.</a>-->
+<!--                  </li>-->
+<!--                  <li class="nav-item">-->
+<!--                      <a class="nav-link" id="initial-tab" data-toggle="tab" href="#initial" role="tab" aria-controls="initial" aria-selected="false">Initial con.</a>-->
+<!--                  </li>-->
+<!--                  <li class="nav-item">-->
+<!--                      <a class="nav-link" id="sysParam-tab" data-toggle="tab" href="#sysParam" role="tab" aria-controls="sysParam" aria-selected="false">System Param.</a>-->
+<!--                  </li>-->
+<!--                  <li class="nav-item">-->
+<!--                      <a class="nav-link" id="appForce-tab" data-toggle="tab" href="#appForce" role="tab" aria-controls="appForce" aria-selected="false">Force</a>-->
+<!--                  </li>-->
+<!--                  <li class="nav-item">-->
+<!--                      <a class="nav-link" id="aux-tab" data-toggle="tab" href="#aux" role="tab" aria-controls="aux" aria-selected="false">Aux.</a>-->
+<!--                  </li>-->
+<!--              </ul>-->
+<!--                  </tr>-->
+<!--              <tr height="100px">-->
+<!--&lt;!&ndash;   Nav Bar           &ndash;&gt;-->
+
+<!--            <div class="tab-content" id="myTabContent">-->
+<!--&lt;!&ndash;                  Graph Control                &ndash;&gt;-->
+<!--                <div class="tab-pane fade show active" id="graphCon" role="tabpanel" aria-labelledby="graphCon-tab">-->
+
+<!--                &lt;!&ndash; yAxis Options &ndash;&gt;-->
+<!--                <div class='dropdown d-inline mr-4' id="y_axis">-->
+<!--                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> y-axis </button>-->
+<!--                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">-->
+<!--                    <div id='yaxis_dropdown_disp' class='yaxis_dropdown dropdown-item active' onclick="change_yAxis('disp', 'Displacement')">Displacement</div>-->
+<!--                    <div id='yaxis_dropdown_vel' class='yaxis_dropdown dropdown-item' onclick="change_yAxis('vel', 'Velocity')">Velocity</div>-->
+<!--                    <div id='yaxis_dropdown_acc' class='yaxis_dropdown dropdown-item' onclick="change_yAxis('acc', 'Acceleration')">Acceleration</div>-->
+<!--                    <div class="dropdown-divider"></div>-->
+<!--                    <div id='yaxis_dropdown_kineticEnergy' class='yaxis_dropdown dropdown-item' onclick="change_yAxis('kineticEnergy', 'Kinetic Energy')">Kinetic Energy</div>-->
+<!--                    <div id='yaxis_dropdown_potentialEnergy' class='yaxis_dropdown dropdown-item' onclick="change_yAxis('potentialEnergy', 'Potential Energy')">Potential Energy</div>-->
+<!--                    <div id='yaxis_dropdown_totalEnergy' class='yaxis_dropdown dropdown-item' onclick="change_yAxis('totalEnergy', 'Total Energy')">Total Energy</div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--                &lt;!&ndash; yAxis Options &ndash;&gt;-->
+
+<!--                &lt;!&ndash; xAxis Options &ndash;&gt;-->
+<!--                <div class='dropdown d-inline mr-4' id="x_axis">-->
+<!--                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> x-axis </button>-->
+<!--                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">-->
+<!--                    <div id='xaxis_dropdown_time' class='xaxis_dropdown dropdown-item active' onclick="change_xAxis('time', 'Time')">Time</div>-->
+<!--                    <div class="dropdown-divider"></div>-->
+<!--                    <div id='xaxis_dropdown_disp' class='xaxis_dropdown dropdown-item' onclick="change_xAxis('disp', 'Displacement')">Displacement</div>-->
+<!--                    <div id='xaxis_dropdown_vel' class='xaxis_dropdown dropdown-item' onclick="change_xAxis('vel', 'Velocity')">Velocity</div>-->
+<!--                    <div id='xaxis_dropdown_acc' class='xaxis_dropdown dropdown-item' onclick="change_xAxis('acc', 'Acceleration')">Acceleration</div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--                &lt;!&ndash; xAxis Options &ndash;&gt;-->
+
+<!--                &lt;!&ndash; Time Span &ndash;&gt;-->
+<!--                <div class='dropdown d-inline' id="timespan_dropdown">-->
+<!--                  <button class="btn btn-secondary dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> time span </button>-->
+<!--                  <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">-->
+<!--                    <div id='time_dropdown_10' class='time_dropdown dropdown-item active' onclick="change_timeSpan(10)">10 seconds</div>-->
+<!--                    <div id='time_dropdown_20' class='time_dropdown dropdown-item' onclick="change_timeSpan(20)">20 seconds</div>-->
+<!--                    <div id='time_dropdown_50' class='time_dropdown dropdown-item' onclick="change_timeSpan(50)">50 seconds</div>-->
+<!--                    <div id='time_dropdown_100' class='time_dropdown dropdown-item' onclick="change_timeSpan(100)">100 seconds</div>-->
+<!--                    <div id='time_dropdown_200' class='time_dropdown dropdown-item' onclick="change_timeSpan(200)">200 seconds</div>-->
+<!--                    <div id='time_dropdown_500' class='time_dropdown dropdown-item' onclick="change_timeSpan(500)">500 seconds</div>-->
+<!--                  </div>-->
+<!--                </div>-->
+<!--                &lt;!&ndash; Time Span &ndash;&gt;-->
+
+<!--                <div class='mt-1'> <input type="range" id="timestep_slider" style="width: 40%; vertical-align: middle;"></input> h = <input id="timestep_input" type="number" style="width: 10%;"> </div>-->
+
+<!--                </div>-->
+<!--&lt;!&ndash;                  Graph Control                 &ndash;&gt;-->
+
+<!--&lt;!&ndash;                  Initial Condition           &ndash;&gt;-->
+<!--              <div class="tab-pane fade" id="initial" role="tabpanel" aria-labelledby="initial-tab">-->
+
+<!--              <div class="card-body">-->
+<!--                <div class='mt-1'> <input type="range" id="initialPosition_slider" style="width: 40%; vertical-align: middle;"></input> x<sub>0</sub> = <input id="initialPosition_input" type="number" style="width: 25%;"> </div>-->
+<!--                <div class='mt-1'> <input type="range" id="initialVelocity_slider" style="width: 40%; vertical-align: middle;"></input> v<sub>0</sub> = <input id="initialVelocity_input" type="number" style="width: 25%;"> </div>-->
+<!--              </div>-->
+<!--              </div>-->
+<!--&lt;!&ndash;                  Initial Condition           &ndash;&gt;-->
+
+<!--&lt;!&ndash;                  System Parameters            &ndash;&gt;-->
+<!--              <div class="tab-pane fade" id="sysParam" role="tabpanel" aria-labelledby="sysParam-tab">-->
+<!--&lt;!&ndash;              <div class="card-body">&ndash;&gt;-->
+<!--                <div class='mt-1'> <input type="range" id="mass_slider" style="width: 40%; vertical-align: middle;"></input> m = <input id="mass_input" type="number" style="width: 25%;"> </div>-->
+<!--                <div class='mt-1'> <input type="range" id="springConstant_slider" style="width: 40%; vertical-align: middle;"></input> k = <input id="springConstant_input" type="number" style="width: 25%;"> </div>-->
+<!--                <div class='mt-1'> <input type="range" id="dampingConstant_slider" style="width: 40%; vertical-align: middle;"></input> c = <input id="dampingConstant_input" type="number" style="width: 25%;"> </div>-->
+<!--&lt;!&ndash;              </div>&ndash;&gt;-->
+<!--              </div>-->
+<!--&lt;!&ndash;                  System Parameters             &ndash;&gt;-->
+
+<!--&lt;!&ndash;                  Applied Force                 &ndash;&gt;-->
+<!--              <div class="tab-pane fade" id="appForce" role="tabpanel" aria-labelledby="appForce-tab">-->
+<!--&lt;!&ndash;              <div class="card-body">&ndash;&gt;-->
+<!--                <div class='mt-1'> <input type="range" id="excitingMagnitude_slider" style="width: 40%; vertical-align: middle;"></input> F<sub>0</sub> = <input id="excitingMagnitude_input" type="number" style="width: 25%;"> </div>-->
+<!--                <div class='mt-1'> <input type="range" id="excitingFrequency_slider" style="width: 40%; vertical-align: middle;"></input> ω = <input id="excitingFrequency_input" type="number" style="width: 25%;"> </div>-->
+<!--&lt;!&ndash;              </div>&ndash;&gt;-->
+<!--              </div>-->
+<!--&lt;!&ndash;                  Applied Force                 &ndash;&gt;-->
+
+<!--&lt;!&ndash;                  Auxiliary Force                  &ndash;&gt;-->
+<!--              <div class="tab-pane fade" id="aux" role="tabpanel" aria-labelledby="aux-tab">-->
+<!--&lt;!&ndash;              <div class="card-body">&ndash;&gt;-->
+<!--                <div class='mt-1'> <input type="range" id="auxSpringConstant_slider" style="width: 40%; vertical-align: middle;"></input> k' = <input id="auxSpringConstant_input" type="number" style="width: 25%;"> </div>-->
+<!--&lt;!&ndash;              </div>&ndash;&gt;-->
+<!--              </div>-->
+<!--&lt;!&ndash;                  Auxiliary Force                  &ndash;&gt;-->
+
+<!--            </div>-->
+<!--              </tr>-->
+<!--        </table>-->
+<!--      </div>-->
+<!--     </div>-->
+        <div class="row">
+
+        <div class="col-md-6">
+      <!-- Equation -->
+      <div id="equation_panel" style="font-size: 1.3em; color:white;">\( mx''+cx'+kx=F_0\sin(\omega t) \)</div>
+      <div id="aux_equation_panel" style="font-size: 1em; color: white;"class="text-center">\( \Delta x = x \ \ if \ x > 0 \ ; \ \Delta x = 0 \ if \ x < 0 \)</div>
+      <!-- Equation -->
+        </div>
+       <div class="col-md-6">
+<!--Next and Previous Button-->
+            <div class="row">
+              <div class="col-md-6" style="padding-top:30px;">
+            <button id="prev_btn" type="button" class="btn btn-info btn-block text-center" style="font-size:1.5em;">Prev</button>
+              </div>
+              <div class="col-md-6" style="padding-top:30px;">
+            <button id="next_btn" type="button" class="btn btn-info btn-block text-center" style="font-size:1.5em;">Next</button>
+                </div>
+            </div>
+<!--Next and Previous Button-->
+
+<!--Progress Bar-->
+            <div class="row">
+              <div class="col-md-12">
+                <div class="progress mt-3 height:0.75em">
+                  <div id='progress-bar' class="progress-bar progress-bar-striped" style="width:0%; height:0.75em;"></div>
+                  </div>
+                </div>
+            </div>
+<!--Progress Bar-->
+     </div>
+    </div><br>
+      <!-- Calculation Step -->
+<!--      <div class = "card-group">-->
+  <table bordercolor="#ff00ff" class="table table-sm table-dark" style="width: 100%; border-radius: 25px;">
+  <thead>
+    <tr>
+      <th scope="col">
+          $$ t_{n} = t_{n-1} + h $$
+      </th>
+      <th scope="col">
+          $$ x_{n} = x_{n-1} + v_n \times h $$
+      </th>
+      <th scope="col">
+          $$ v_{n} = v_{n-1} - \frac{k}{m}\times x_{n-1}\times h $$
+          <center>
+          <span class="Fric" style="font-size: .9em;"></span>
+          <span class="Aux" style="font-size: .9em;"></span>
+          <span class="Force" style="font-size: .9em;"></span>
+          </center>
+      </th>
+    </tr>
+    <tbody>
+    <tr style="font-size: 1.1em; background-color: #FAF18B;">
+      <td width="150px">
+          \( t \)<sub><span class="n"></span></sub> = <span class="tn"></span>
+      </td>
+      <td>
+          \( x \)<sub><span class="n"></span></sub> = <span class="xn"></span>
+      </td>
+      <td>
+          \( v \)<sub><span class="n"></span></sub> = <span class="vn"></span>
+      </td>
+    </tr>
+  <tr height="200px" style="font-size: 1.1em; background-color: #8AE15E;">
+    <td style="text-align:left;padding: 15px;font-family: 'Trebuchet MS', sans-serif;line-height: 20pt;">
+<!--          \( t \)<sub><span class="nplus"></span></sub> = <span class="tn"></span> + <span class="h"></span>-->
+<!--          = <span class="tnplus"></span>-->
+        \( t \)<sub><span class="nplus"></span></sub> = <span class="tnplus"></span>
+    </td>
+    <td style="text-align:left;padding: 15px;font-family: 'Trebuchet MS', sans-serif;line-height: 20pt;">
+<!--          \( x \)<sub><span class="nplus"></span></sub> = <span class="xn"></span> +-->
+<!--          <span class="h"></span> x <span class="vn"></span><br>-->
+<!--          = <span class="xnplus"></span>-->
+        \( x \)<sub><span class="nplus"></span></sub> = <span class="xnplus"></span>
+    </td>
+    <td width="400px" style="word-wrap: break-word; text-align:left;padding: 15px;font-family: 'Trebuchet MS', sans-serif;line-height: 20pt;">
+<!--          \( v \)<sub><span class="nplus"></span></sub> = <span class="vn"></span> - -->
+<!--          (<sup><span class="k"></span></sup>/<sub><span class="m"></span></sub>) x-->
+<!--          (<span class="xn"></span>) x <span class="h"></span>-->
+<!--            <span class="Fric-val"></span><span class="Aux-val"></span><span class="Force-val"></span><br>-->
+<!--          = <span class="vnplus"></span>-->
+        \( v \)<sub><span class="nplus"></span></sub> = <span class="vnplus"></span>
+    </td>
+  </tr>
+  </tbody>
+  </table>
+      <!-- Table -->
+      <div class="row">
+        <div class="col-md-12">
+          <table id="table" class="table table-sm table-dark">
+          <thead>
+            <tr>
+              <th scope="col" class="text-center">Step (n)</th>
+              <th scope="col" class="text-center">Time (t)</th>
+              <th scope="col" class="text-center">Displacement (x)</th>
+              <th scope="col" class="text-center">Velocity (v)</th>
+            </tr>
+          </thead>
+          </table><br>
+        </div>
+      </div>
+      <!-- Table -->
+    </div>
+    <!-- Right Pane -->
+    <!--------------------------------------------->
+  </div>
+</div>
+<!-- Main Body -->
+<!------------------------------------------------------------------------------------------------------->
+</body>
+<!---------------------------->
+<!-- Javascript Codes -->
+
+<script src="./table.js"></script>
+<script src="./calculationSteps.js"></script>
+<script src="./oscillator.js"></script>
+<script src="./schematic.js"></script>
+<script src="./graph.js"></script>
+<script src="./sliders.js"></script>
+<script src="./equation.js"></script>
+<script src="./index.js"></script>
+
+</html>
+
+      <!-- Calculation Step -->
+<!--        <div class="card">-->
+<!--          <div class="card-header">$$ t_{n+1} = t_n + h $$</div>-->
+<!--        <div class ="card-body" style="font-size: 1.1em; background-color: #FAF18B;">-->
+<!--          \( t \)<sub><span class="n"></span></sub> = <span class="tn"></span><br>-->
+<!--        </div>-->
+<!--        <div class ="card-body" style="font-size: 1.1em; background-color: #8AE15E;">-->
+<!--          \( t \)<sub><span class="nplus"></span></sub> = <span class="tn"></span> + <span class="h"></span>-->
+<!--          = <span class="tnplus"></span>-->
+<!--        </div>-->
+<!--        </div>-->
+<!--        <div class="card">-->
+<!--        <div class="card-header">$$ x_{n+1} = x_n + v_n \times h $$</div>-->
+<!--        <div class ="card-body" style="font-size: 1.1em; background-color: #FAF18B;">-->
+<!--          \( x \)<sub><span class="n"></span></sub> = <span class="xn"></span>-->
+<!--        </div>-->
+<!--        <div class ="card-body" style="font-size: 1.1em; background-color: #8AE15E;">-->
+<!--          \( x \)<sub><span class="nplus"></span></sub> = <span class="xn"></span> +-->
+<!--          <span class="h"></span> x <span class="vn"></span><br>-->
+<!--           = <span class="xnplus"></span>-->
+<!--        </div>-->
+<!--        </div>-->
+<!--        <div class="card">-->
+<!--        <div class="card-header">$$ v_{n+1} = v_n + \frac{k}{m}\times x_n\times h $$</div>-->
+<!--        <div class ="card-body" style="font-size: 1.1em; background-color: #FAF18B;">-->
+<!--          \( v \)<sub><span class="n"></span></sub> = <span class="vn"></span>-->
+<!--        </div>-->
+<!--        <div class ="card-body" style="font-size: 1.1em; background-color: #8AE15E;">-->
+<!--          \( v \)<sub><span class="nplus"></span></sub> = <span class="vn"></span> - -->
+<!--          (<sup><span class="k"></span></sup>/<sub><span class="m"></span></sub>) x-->
+<!--          (<span class="xn"></span>) x <span class="h"></span><br>-->
+<!--           = <span class="vnplus"></span>-->
+<!--        </div>-->
+<!--        </div>-->
+<!--      </div>-->
